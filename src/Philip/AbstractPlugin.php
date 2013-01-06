@@ -35,6 +35,8 @@ abstract class AbstractPlugin
         $this->bot = $bot;
     }
 
+	abstract public function getName();
+
     /**
      * Init the plugin and start listening to messages
      */

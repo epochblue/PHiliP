@@ -205,9 +205,18 @@ class Philip
             }
 
             $plugin->init();
-			$this->plugins[] = $plugin;
+			$this->plugins[$plugin->getName()] = $plugin;
         }
     }
+
+	public function getPlugin($name)
+	{
+		if (false === isset($this->plugins[$name])) {
+			throw new \InvalidArgumentException(sprintf('Plugin %s is not registered'));
+		}
+
+		return $this->plugins[$name];
+	}
 
     /**
      * Loads multiple plugins in a single call.
