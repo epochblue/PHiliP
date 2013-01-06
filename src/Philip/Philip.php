@@ -457,7 +457,7 @@ class Philip
 			}
 		};
 
-		$this->onChannel('/!help/', $help);
-		$this->onPrivateMessage('/!help/', $help);
+		$this->onChannel('/^!help$/', $help);
+		$this->onPrivateMessage('/^!help$/', $help);
     }
 }
