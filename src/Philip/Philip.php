@@ -264,7 +264,7 @@ class Philip
             $this->config['realname']
         ));
 
-		if(isset($this->config['password'])) {
+		if (isset($this->config['password'])) {
 			$this->send(Response::msg(
 				'NickServ',
 				'identify ' . $this->config['password']
@@ -334,7 +334,7 @@ class Philip
     /**
      * Actually push data back into the socket (giggity).
      *
-     * @param array $responses The responses to send back to the server
+     * @param string|array $responses The responses to send back to the server
      */
     private function send($responses)
     {
