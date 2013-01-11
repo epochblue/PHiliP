@@ -26,7 +26,7 @@ class Response
 	 * @param string $cmd  The IRC command to return
 	 * @param mixed  $args The arguments to send with it
 	 */
-	private function __construct($cmd, $args = '')
+	public function __construct($cmd, $args = '')
 	{
 		if (!is_array($args)) {
 			$args = array($args);
