@@ -42,8 +42,8 @@ class Philip
     /** @var string $pidfile The location to write to, if write_pidfile is enabled */
     private $pidfile;
 
-	/** @var \Philip\AbstractPlugin[] */
-	private $plugins = array();
+    /** @var \Philip\AbstractPlugin[] */
+    private $plugins = array();
 
     /**
      * Constructor.
@@ -117,7 +117,7 @@ class Philip
      */
     public function onJoin($callback)
     {
-		$this->onServer('join', $callback);
+        $this->onServer('join', $callback);
     }
 
     /**
@@ -127,7 +127,7 @@ class Philip
      */
     public function onPart($callback)
     {
-		$this->onServer('part', $callback);
+        $this->onServer('part', $callback);
     }
 
     /**
@@ -137,7 +137,7 @@ class Philip
      */
     public function onError($callback)
     {
-		$this->onServer('error', $callback);
+        $this->onServer('error', $callback);
     }
 
     /**
@@ -150,11 +150,11 @@ class Philip
         $this->onServer('notice', $callback);
     }
 
-	public function onServer($command, $callback)
-	{
-		$handler = new EventListener(null, $callback);
-		$this->dispatcher->addListener('server.' . $command, array($handler, 'testAndExecute'));
-	}
+    public function onServer($command, $callback)
+    {
+        $handler = new EventListener(null, $callback);
+        $this->dispatcher->addListener('server.' . $command, array($handler, 'testAndExecute'));
+    }
 
     /**
      * Return the configuration so plugins and external things can use it.
@@ -199,19 +199,19 @@ class Philip
      */
     public function loadPlugin(AbstractPlugin $plugin)
     {
-		$name = $plugin->getName();
-		$plugin->init();
-		$this->plugins[$name] = $plugin;
+        $name = $plugin->getName();
+        $plugin->init();
+        $this->plugins[$name] = $plugin;
     }
 
-	public function getPlugin($name)
-	{
-		if (false === isset($this->plugins[$name])) {
-			throw new \InvalidArgumentException(sprintf('Plugin %s is not registered'));
-		}
+    public function getPlugin($name)
+    {
+        if (false === isset($this->plugins[$name])) {
+            throw new \InvalidArgumentException(sprintf('Plugin %s is not registered'));
+        }
 
-		return $this->plugins[$name];
-	}
+        return $this->plugins[$name];
+    }
 
     /**
      * Loads multiple plugins in a single call.
@@ -228,10 +228,11 @@ class Philip
     /**
      * Determines if the given user is an admin.
      *
-     * @param string $user The username to test
+     * @param  string  $user The username to test
      * @return boolean True if the user is an admin, false otherwise
      */
-    public function isAdmin($user) {
+    public function isAdmin($user)
+    {
         return in_array($user, $this->config['admins']);
     }
 
@@ -244,10 +245,10 @@ class Philip
             $this->login();
             $this->join();
 
-			foreach ($this->plugins as $plugin) {
-				$name = $plugin->getName();
-				$plugin->boot(isset($this->config[$name]) ? $this->config[$name] : array());
-			}
+            foreach ($this->plugins as $plugin) {
+                $name = $plugin->getName();
+                $plugin->boot(isset($this->config[$name]) ? $this->config[$name] : array());
+            }
 
             $this->listen();
         }
@@ -262,6 +263,7 @@ class Philip
     {
         stream_set_blocking(STDIN, 0);
         $this->socket = fsockopen($this->config['hostname'], $this->config['port']);
+
         return (bool) $this->socket;
     }
 
@@ -278,12 +280,12 @@ class Philip
             $this->config['realname']
         ));
 
-		if (isset($this->config['password'])) {
-			$this->send(Response::msg(
-				'NickServ',
-				'identify ' . $this->config['password']
-			));
-		}
+        if (isset($this->config['password'])) {
+            $this->send(Response::msg(
+                'NickServ',
+                'identify ' . $this->config['password']
+            ));
+        }
     }
 
     /**
@@ -336,12 +338,13 @@ class Philip
     /**
      * Convert the raw incoming IRC message into a Request object
      *
-     * @param string $raw The unparsed incoming IRC message
+     * @param  string  $raw The unparsed incoming IRC message
      * @return Request The parsed message
      */
     private function receive($raw)
     {
         $this->log->debug('--> ' . $raw);
+
         return new Request($raw);
     }
 
@@ -361,14 +364,14 @@ class Philip
             fwrite($this->socket, $response);
             $this->log->debug('<-- ' . $response);
 
-			if (isset($this->config['unflood']['interval'])) {
-				usleep($this->config['unflood']['interval']);
-			}
+            if (isset($this->config['unflood']['interval'])) {
+                usleep($this->config['unflood']['interval']);
+            }
         }
 
-		if (isset($this->config['unflood']['delay'])) {
-			usleep($this->config['unflood']['delay']);
-		}
+        if (isset($this->config['unflood']['delay'])) {
+            usleep($this->config['unflood']['delay']);
+        }
     }
 
     /**
@@ -451,14 +454,14 @@ class Philip
         $this->dispatcher->addListener('server.ping', array($pingHandler, 'testAndExecute'));
         $this->dispatcher->addListener('server.error', array($errorHandler, 'testAndExecute'));
 
-		$plugins = & $this->plugins;
-		$help = function(Event $event) use (& $plugins) {
-			foreach ($plugins as $plugin) {
-				$plugin->displayHelp($event);
-			}
-		};
+        $plugins = & $this->plugins;
+        $help = function(Event $event) use (& $plugins) {
+            foreach ($plugins as $plugin) {
+                $plugin->displayHelp($event);
+            }
+        };
 
-		$this->onChannel('/^!help$/', $help);
-		$this->onPrivateMessage('/^!help$/', $help);
+        $this->onChannel('/^!help$/', $help);
+        $this->onPrivateMessage('/^!help$/', $help);
     }
 }

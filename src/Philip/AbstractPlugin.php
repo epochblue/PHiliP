@@ -23,8 +23,8 @@ abstract class AbstractPlugin
     /** @var \Philip\Philip */
     protected $bot;
 
-	/** @var array */
-	protected $config = array();
+    /** @var array */
+    protected $config = array();
 
     /**
      * Constructor
@@ -36,7 +36,7 @@ abstract class AbstractPlugin
         $this->bot = $bot;
     }
 
-	abstract public function getName();
+    abstract public function getName();
 
     /**
      * Init the plugin and start listening to messages
@@ -44,14 +44,14 @@ abstract class AbstractPlugin
     abstract public function init();
 
     public function boot(array $config = array())
-	{
-		$this->config = $config;
-	}
+    {
+        $this->config = $config;
+    }
 
-	/**
-	 * @param Event $help
-	 */
-	public function displayHelp(Event $help)
-	{
-	}
+    /**
+     * @param Event $help
+     */
+    public function displayHelp(Event $help)
+    {
+    }
 }

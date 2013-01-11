@@ -52,6 +52,7 @@ class EventListener
     {
         if ($this->shouldExecuteCallback($event->getRequest()->getMessage())) {
             $event->setMatches($this->getMatches());
+
             return call_user_func($this->callback, $event);
         }
     }
@@ -86,4 +87,3 @@ class EventListener
         return array();
     }
 }
-
