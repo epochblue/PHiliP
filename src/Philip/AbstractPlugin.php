@@ -42,6 +42,10 @@ abstract class AbstractPlugin
      */
     abstract public function init();
 
+    public function boot()
+	{
+	}
+
 	/**
 	 * @param Event $help
 	 */

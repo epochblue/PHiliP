@@ -248,6 +248,11 @@ class Philip
         if ($this->connect()) {
             $this->login();
             $this->join();
+
+			foreach ($this->plugins as $plugin) {
+				$plugin->boot();
+			}
+
             $this->listen();
         }
     }
@@ -349,7 +354,7 @@ class Philip
      *
      * @param string|array $responses The responses to send back to the server
      */
-    private function send($responses)
+    public function send($responses)
     {
         if (!is_array($responses)) {
             $responses = array($responses);
