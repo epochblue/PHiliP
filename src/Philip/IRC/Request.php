@@ -25,7 +25,7 @@ class Request
 			)\s+|
 		)
 		(?P<command>[a-zA-Z]+|[0-9]{3})
-		(?:\s+(?P<channel>[#&!+]*[^\x07\x2C\s]{0,200}))?
+		(?:\s+(?P<channel>[#&!+]+[^\x07\x2C\s]{0,200}))?
 		(?:(?P<params>(?:\s+[^:][^\s]*)*))?
 		(?:\s+\:(?P<message>[^\r\n]*))?
 		\r?\n?
@@ -63,13 +63,15 @@ class Request
 			$this->cmd      = $matches['command'];
 			$this->channel  = $matches['channel'];
 
-			if (isset($matches['params'])) {
+			if (!empty($matches['params'])) {
 				$this->params = explode(' ', trim($matches['params']));
 			} else {
 				$this->params = array();
 			}
 
-			$this->message  = $matches['message'];
+			if (isset($matches['message'])) {
+				$this->message  = $matches['message'];
+			}
 		}
     }
 
@@ -154,7 +156,7 @@ class Request
 	 */
     public function isPrivateMessage()
     {
-		return !isset($this->channel);
+		return empty($this->channel);
 	}
 
 	/**
@@ -164,7 +166,7 @@ class Request
 	 */
     public function isFromUser()
     {
-		return isset($this->user);
+		return !empty($this->user);
 	}
 
 	/**
