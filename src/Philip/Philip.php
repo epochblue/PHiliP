@@ -117,8 +117,7 @@ class Philip
      */
     public function onJoin($callback)
     {
-        $handler = new EventListener(null, $callback);
-        $this->dispatcher->addListener('server.join', array($handler, 'testAndExecute'));
+		$this->onServer('join', $callback);
     }
 
     /**
@@ -128,8 +127,7 @@ class Philip
      */
     public function onPart($callback)
     {
-        $handler = new EventListener(null, $callback);
-        $this->dispatcher->addListener('server.part', array($handler, 'testAndExecute'));
+		$this->onServer('part', $callback);
     }
 
     /**
@@ -139,8 +137,7 @@ class Philip
      */
     public function onError($callback)
     {
-        $handler = new EventListener(null, $callback);
-        $this->dispatcher->addListener('server.error', array($handler, 'testAndExecute'));
+		$this->onServer('error', $callback);
     }
 
     /**
@@ -150,9 +147,14 @@ class Philip
      */
     public function onNotice($callback)
     {
-        $handler = new EventListener(null, $callback);
-        $this->dispatcher->addListener('server.notice', array($handler, 'testAndExecute'));
+        $this->onServer('notice', $callback);
     }
+
+	public function onServer($command, $callback)
+	{
+		$handler = new EventListener(null, $callback);
+		$this->dispatcher->addListener('server.' . $command, array($handler, 'testAndExecute'));
+	}
 
     /**
      * Return the configuration so plugins and external things can use it.
