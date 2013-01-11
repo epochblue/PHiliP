@@ -20,10 +20,11 @@ use Philip\IRC\Event;
  */
 abstract class AbstractPlugin
 {
-    /**
-     * @var \Philip\Philip
-     */
+    /** @var \Philip\Philip */
     protected $bot;
+
+	/** @var array */
+	protected $config = array();
 
     /**
      * Constructor
@@ -42,8 +43,9 @@ abstract class AbstractPlugin
      */
     abstract public function init();
 
-    public function boot()
+    public function boot(array $config = array())
 	{
+		$this->config = $config;
 	}
 
 	/**

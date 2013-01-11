@@ -196,19 +196,12 @@ class Philip
      * Loads a plugin. See the README for plugin documentation.
      *
      * @param string $name The fully-qualified classname of the plugin to load
-     *
-     * @throws \InvalidArgumentException
      */
-    public function loadPlugin($classname)
+    public function loadPlugin(AbstractPlugin $plugin)
     {
-        if (class_exists($classname) && $plugin = new $classname($this)) {
-            if (!$plugin instanceof AbstractPlugin) {
-                throw new \InvalidArgumentException('Class must be an instance of \Philip\AbstractPlugin');
-            }
-
-            $plugin->init();
-			$this->plugins[$plugin->getName()] = $plugin;
-        }
+		$name = $plugin->getName();
+		$plugin->init();
+		$this->plugins[$name] = $plugin;
     }
 
 	public function getPlugin($name)
@@ -223,12 +216,12 @@ class Philip
     /**
      * Loads multiple plugins in a single call.
      *
-     * @param array $names The fully-qualified classnames of the plugins to load.
+     * @param \Philip\AbstractPlugin[] $names The fully-qualified classnames of the plugins to load.
      */
-    public function loadPlugins($classnames)
+    public function loadPlugins(array $plugins)
     {
-        foreach ($classnames as $classname) {
-            $this->loadPlugin($classname);
+        foreach ($plugins as $plugin) {
+            $this->loadPlugin($plugin);
         }
     }
 
@@ -252,7 +245,8 @@ class Philip
             $this->join();
 
 			foreach ($this->plugins as $plugin) {
-				$plugin->boot();
+				$name = $plugin->getName();
+				$plugin->boot(isset($this->config[$name]) ? $this->config[$name] : array());
 			}
 
             $this->listen();
