@@ -52,7 +52,7 @@ class Request
 		$this->raw = $raw;
 
         $matches = array();
-        preg_match(self::$RE_MSG, $raw, $matches);
+        preg_match(self::$RE_MSG, trim($raw), $matches);
 
 		// Remove newlines and carriage returns
 		$count = count($matches);
