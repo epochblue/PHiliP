@@ -64,7 +64,7 @@ class Request
 			$this->prefix   = $matches[self::$PREFIX];
 			$this->cmd      = $matches[self::$COMMAND];
 			$this->middle   = $matches[self::$MIDDLE] ? explode(' ', $matches[self::$MIDDLE]) : null;
-			$this->trailing = $matches[self::$TRAILING] ?: null;
+			$this->trailing = isset($matches[self::$TRAILING]) ? $matches[self::$TRAILING] : null;
 		}
     }
 
