@@ -200,6 +200,8 @@ class Philip
     public function loadPlugin(AbstractPlugin $plugin)
     {
         $name = $plugin->getName();
+
+         $this->log->addDebug('--- Loading plugin ' . $name . PHP_EOL);
         $plugin->init();
         $this->plugins[$name] = $plugin;
     }
@@ -247,6 +249,7 @@ class Philip
 
             foreach ($this->plugins as $plugin) {
                 $name = $plugin->getName();
+                $this->log->addDebug('--- Booting plugin ' . $name . PHP_EOL);
                 $plugin->boot(isset($this->config[$name]) ? $this->config[$name] : array());
             }
 
