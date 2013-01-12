@@ -128,7 +128,7 @@ class Request
     public function getSendingUser()
     {
         if ($this->isFromUser()) {
-            return $this->user;
+            return $this->server;
         }
 
         return false;
