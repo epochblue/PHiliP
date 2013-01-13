@@ -46,7 +46,9 @@ class EventListener
     /**
      * Executes the given callback, returns the callback's return value.
      *
-     * @param Event $event The Philip IRC event
+     * @param \Philip\IRC\Event $event The Philip IRC event
+     *
+     * @return mixed
      */
     public function testAndExecute(Event $event)
     {
@@ -55,6 +57,8 @@ class EventListener
 
             return call_user_func($this->callback, $event);
         }
+
+        return false;
     }
 
     /**
@@ -67,7 +71,7 @@ class EventListener
     private function shouldExecuteCallback($msg)
     {
         if ($this->pattern) {
-            return preg_match($this->pattern, $msg, $this->matches);
+            return (bool) preg_match($this->pattern, $msg, $this->matches);
         }
 
         return true;

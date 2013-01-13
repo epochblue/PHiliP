@@ -33,10 +33,10 @@ class Philip
     /** @var resource $socket The socket for communicating with the IRC server */
     private $socket;
 
-    /** @var EventDispatcher $dispatcher The event mediator */
+    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $dispatcher The event mediator */
     private $dispatcher;
 
-    /** @var Logger $log The log to write to, if debug is enabled */
+    /** @var \Monolog\Logger $log The log to write to, if debug is enabled */
     private $log;
 
     /** @var string $pidfile The location to write to, if write_pidfile is enabled */
@@ -49,11 +49,12 @@ class Philip
      * Constructor.
      *
      * @param array $config The configuration for the bot
+     * @param \Symfony\Component\EventDispatcher\EventDispatcher $dispatcher
      */
-    public function __construct($config = array())
+    public function __construct($config = array(), EventDispatcher $dispatcher = null)
     {
         $this->config = $config;
-        $this->dispatcher = new EventDispatcher();
+        $this->dispatcher = $dispatcher ?: new EventDispatcher();
         $this->initialize();
     }
 
@@ -78,11 +79,15 @@ class Philip
      *
      * @param string   $pattern  The RegEx to test the message against
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onChannel($pattern, $callback)
     {
         $handler = new EventListener($pattern, $callback);
         $this->dispatcher->addListener('message.channel', array($handler, 'testAndExecute'));
+
+        return $this;
     }
 
     /**
@@ -90,11 +95,15 @@ class Philip
      *
      * @param string   $pattern  The RegEx to test the message against
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onPrivateMessage($pattern, $callback)
     {
         $handler = new EventListener($pattern, $callback);
         $this->dispatcher->addListener('message.private', array($handler, 'testAndExecute'));
+
+        return $this;
     }
 
     /**
@@ -102,58 +111,77 @@ class Philip
      *
      * @param string   $pattern  The RegEx to test the message against
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onMessages($pattern, $callback)
     {
-        $handler = new EventListener($pattern, $callback);
-        $this->dispatcher->addListener('message.channel', array($handler, 'testAndExecute'));
-        $this->dispatcher->addListener('message.private', array($handler, 'testAndExecute'));
+        return $this
+            ->onChannel($pattern, $callback)
+            ->onPrivateMessage($pattern, $callback)
+        ;
     }
 
     /**
      * Adds event handlers to the list for JOIN messages.
      *
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onJoin($callback)
     {
-        $this->onServer('join', $callback);
+        return $this->onServer('join', $callback);
     }
 
     /**
      * Adds event handlers to the list for PART messages.
      *
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onPart($callback)
     {
-        $this->onServer('part', $callback);
+        return $this->onServer('part', $callback);
     }
 
     /**
      * Adds event handlers to the list for ERROR messages.
      *
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onError($callback)
     {
-        $this->onServer('error', $callback);
+        return $this->onServer('error', $callback);
     }
 
     /**
      * Adds event handlers to the list for NOTICE messages.
      *
      * @param callable $callback The callback to run if the pattern matches
+     *
+     * @return \Philip\Philip
      */
     public function onNotice($callback)
     {
-        $this->onServer('notice', $callback);
+        return $this->onServer('notice', $callback);
     }
 
+    /**
+     * @param string $command
+     * @param callable $callback
+     *
+     * @return \Philip\Philip
+     */
     public function onServer($command, $callback)
     {
         $handler = new EventListener(null, $callback);
         $this->dispatcher->addListener('server.' . $command, array($handler, 'testAndExecute'));
+
+        return $this;
     }
 
     /**
@@ -196,16 +224,43 @@ class Philip
      * Loads a plugin. See the README for plugin documentation.
      *
      * @param string $name The fully-qualified classname of the plugin to load
+     *
+     * @return \Philip\Philip
      */
     public function loadPlugin(AbstractPlugin $plugin)
     {
         $name = $plugin->getName();
 
-         $this->log->addDebug('--- Loading plugin ' . $name . PHP_EOL);
+        $this->log->addDebug('--- Loading plugin ' . $name . PHP_EOL);
         $plugin->init();
         $this->plugins[$name] = $plugin;
+
+        return $this;
     }
 
+    /**
+     * Loads multiple plugins in a single call.
+     *
+     * @param \Philip\AbstractPlugin[] $plugins The fully-qualified classnames of the plugins to load.
+     *
+     * @return \Philip\Philip
+     */
+    public function loadPlugins(array $plugins)
+    {
+        foreach ($plugins as $plugin) {
+            $this->loadPlugin($plugin);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return AbstractPlugin
+     */
     public function getPlugin($name)
     {
         if (false === isset($this->plugins[$name])) {
@@ -213,18 +268,6 @@ class Philip
         }
 
         return $this->plugins[$name];
-    }
-
-    /**
-     * Loads multiple plugins in a single call.
-     *
-     * @param \Philip\AbstractPlugin[] $names The fully-qualified classnames of the plugins to load.
-     */
-    public function loadPlugins(array $plugins)
-    {
-        foreach ($plugins as $plugin) {
-            $this->loadPlugin($plugin);
-        }
     }
 
     /**
@@ -443,19 +486,22 @@ class Philip
      */
     private function addDefaultHandlers()
     {
+        $log = $this->log;
+
         // When the server PINGs us, just respond with PONG and the server's host
-        $pingHandler = new EventListener(null, function($event) {
-            $event->addResponse(Response::pong($event->getRequest()->getMessage()));
-        });
+        $this->onServer(
+            'ping',
+            function($event) {
+                $event->addResponse(Response::pong($event->getRequest()->getMessage()));
+            }
+        );
 
         // If an Error message is encountered, just log it for now.
-        $log = $this->log;
-        $errorHandler = new EventListener(null, function($event) use ($log) {
-            $log->debug("ERROR: {$event->getRequest()->getMessage()}");
-        });
-
-        $this->dispatcher->addListener('server.ping', array($pingHandler, 'testAndExecute'));
-        $this->dispatcher->addListener('server.error', array($errorHandler, 'testAndExecute'));
+        $this->onError(
+            function($event) use ($log) {
+                $log->debug("ERROR: {$event->getRequest()->getMessage()}");
+            }
+        );
 
         $plugins = & $this->plugins;
         $help = function(Event $event) use (& $plugins) {
@@ -464,7 +510,6 @@ class Philip
             }
         };
 
-        $this->onChannel('/^!help$/', $help);
-        $this->onPrivateMessage('/^!help$/', $help);
+        $this->onMessages('/^!help$/', $help);
     }
 }

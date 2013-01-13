@@ -17,13 +17,13 @@ namespace Philip\IRC;
  */
 class Request
 {
-    private static $RE_MSG = '/^
+    const RE_MSG = '/^
         (?:
             \:(?P<prefix>
                 (?P<server>[^\s!]*)
                 (?:!~?(?P<user>[^\s]+)@(?P<host>[^\s]+))?
-            )\s+|
-        )
+            )\s+
+        )?
         (?P<command>[a-zA-Z]+|[0-9]{3})
         (?:\s+(?P<channel>[#&!+]+[^\x07\x2C\s]{0,200}))?
         (?:(?P<params>(?:\s+[^:][^\s]*)*))?
@@ -50,11 +50,8 @@ class Request
     public function __construct($raw)
     {
         $this->raw = $raw;
-        preg_match(self::$RE_MSG, $raw, $matches);
 
-        // Remove newlines and carriage returns
-        $count = count($matches);
-        if ($count) {
+        if (preg_match(self::RE_MSG, $raw, $matches)) {
             $this->prefix   = $matches['prefix'];
             $this->server   = $matches['server'];
             $this->user     = $matches['user'];
@@ -71,6 +68,8 @@ class Request
             if (isset($matches['message'])) {
                 $this->message  = $matches['message'];
             }
+        } else {
+            throw new \InvalidArgumentException(sprintf('Invalid command: %s', $raw));
         }
     }
 
@@ -142,7 +141,7 @@ class Request
     public function getServer()
     {
         if ($this->isFromServer()) {
-            return $this->prefix;
+            return $this->server;
         }
 
         return false;
@@ -176,5 +175,10 @@ class Request
     public function isFromServer()
     {
         return !$this->isFromUser();
+    }
+
+    public function getHost()
+    {
+        return $this->host;
     }
 }
