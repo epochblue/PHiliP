@@ -53,6 +53,7 @@ Here's a basic example:
 require __DIR__ . '/vendor/autoload.php';
 
 $config = array(
+    "hostname"     => "irc.freenode.net",
     "server"       => "irc.freenode.net",
     "port"         => 6667,
     "username"     => "examplebot",
@@ -214,8 +215,8 @@ $request->getMessage()          // Get the text of a message for channel/private
 #### Methods of note in the `Philip\IRC\Response` object:
 
 ```php
-Response::msg($where, $what)    // Sends a message $what to channel/PM $where
-Response::action($where, $what) // Same as a ::msg(), but sends the message as an IRC ACTION
+Response::msg($who, $what)    // Sends a message $what to channel/PM $who
+Response::action($channel, $what) // Same as a ::msg(), but sends the message as an IRC ACTION
 ```
 
 
