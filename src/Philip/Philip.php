@@ -389,13 +389,39 @@ class Philip
 
     /**
      * Starts the IRC bot.
+     *
+     * @param string $msg Send message to specified channel
      */
-    public function run()
+    public function run($msg = '')
     {
         if ($this->connect()) {
             $this->login();
             $this->join();
-            $this->listen();
+            if(!empty($msg))
+            {
+                $this->msg($msg);
+                $this->listen(true);
+            } else {
+                $this->listen(false);
+            }
+        }
+    }
+
+    /**
+     * Send message to channel
+     *
+     * @param string $msg Send message to specified channel
+     */
+    private function msg($msg)
+    {
+        foreach ($this->config['channels'] as $channel) {
+            if (is_array($channel)) {
+                foreach($channel as $chan => $pass) {
+                    $this->send(Response::msg($chan, $msg));
+                }
+            } else {
+                $this->send(Response::msg($channel, $msg));
+            }
         }
     }
 
@@ -474,8 +500,10 @@ class Philip
 
     /**
      * Driver of the bot; listens for messages, responds to them accordingly.
+     *
+     * @param boolean $runOnce Run bot once after sucessfully sending message
      */
-    private function listen()
+    private function listen($runOnce = false)
     {
         do {
             $data = fgets($this->socket, 512);
@@ -491,7 +519,12 @@ class Philip
 
                 // Skip processing if the incoming message is from the bot
                 if ($request->getSendingUser() === $this->config['nick']) {
-                    continue;
+                    if($runOnce)
+                    {
+                        $this->askStop = true;
+                    } else {
+                        continue;
+                    }
                 }
 
                 $event = new Event($request);
